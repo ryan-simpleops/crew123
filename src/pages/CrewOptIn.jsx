@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import './ConsentPage.css';
 
 function CrewOptIn() {
@@ -19,12 +20,39 @@ function CrewOptIn() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Submit to backend
-    console.log('Crew opt-in submitted:', formData);
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Insert into crew_members table
+      const { data, error: insertError } = await supabase
+        .from('crew_members')
+        .insert([
+          {
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            web_consent_given: formData.agreedToSMS,
+            web_consent_at: new Date().toISOString(),
+            // hirer_id will be null for now until we implement email invitations
+          }
+        ])
+        .select();
+
+      if (insertError) throw insertError;
+
+      console.log('Crew member opt-in:', data);
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setError(err.message || 'Failed to submit form. Please try again.');
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -242,12 +270,18 @@ function CrewOptIn() {
               </label>
             </div>
 
+            {error && (
+              <div style={{padding: '15px', background: '#fee', border: '1px solid #fcc', borderRadius: '6px', color: '#c00', marginBottom: '20px'}}>
+                <strong>Error:</strong> {error}
+              </div>
+            )}
+
             <button
               type="submit"
               className="submit-btn"
-              disabled={!isFormValid}
+              disabled={!isFormValid || loading}
             >
-              Continue to SMS Confirmation
+              {loading ? 'Submitting...' : 'Continue to SMS Confirmation'}
             </button>
 
             <p className="form-footer">

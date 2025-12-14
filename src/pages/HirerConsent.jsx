@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import './ConsentPage.css';
 
 function HirerConsent() {
@@ -11,12 +12,54 @@ function HirerConsent() {
     agreedToTerms: false,
     agreedToContactCrew: false,
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Submit to backend
-    console.log('Hirer consent submitted:', formData);
-    alert('Thank you! Your account is being set up. You will receive an email with next steps.');
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      // Insert into hirers table
+      const { data, error: insertError } = await supabase
+        .from('hirers')
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            company: formData.company,
+            role: formData.role,
+            agreed_to_terms: formData.agreedToTerms,
+            agreed_to_contact_crew: formData.agreedToContactCrew,
+          }
+        ])
+        .select();
+
+      if (insertError) throw insertError;
+
+      console.log('Hirer registered:', data);
+      setSubmittedEmail(formData.email);
+      setSuccess(true);
+
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        role: '',
+        agreedToTerms: false,
+        agreedToContactCrew: false,
+      });
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setError(err.message || 'Failed to submit form. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -154,12 +197,24 @@ function HirerConsent() {
               </label>
             </div>
 
+            {error && (
+              <div style={{padding: '15px', background: '#fee', border: '1px solid #fcc', borderRadius: '6px', color: '#c00', marginBottom: '20px'}}>
+                <strong>Error:</strong> {error}
+              </div>
+            )}
+
+            {success && (
+              <div style={{padding: '15px', background: '#efe', border: '1px solid #cfc', borderRadius: '6px', color: '#060', marginBottom: '20px'}}>
+                <strong>Success!</strong> Your account has been created. We'll contact you at {submittedEmail} with next steps.
+              </div>
+            )}
+
             <button
               type="submit"
               className="submit-btn"
-              disabled={!isFormValid}
+              disabled={!isFormValid || loading}
             >
-              Create Account
+              {loading ? 'Submitting...' : 'Create Account'}
             </button>
 
             <p className="form-footer">
