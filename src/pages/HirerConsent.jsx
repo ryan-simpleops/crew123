@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './ConsentPage.css';
@@ -16,6 +16,7 @@ function HirerConsent() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
+  const turnstileRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +25,30 @@ function HirerConsent() {
     setSuccess(false);
 
     try {
+      // Get Turnstile token
+      const turnstileToken = window.turnstile.getResponse(turnstileRef.current);
+      if (!turnstileToken) {
+        throw new Error('Please complete the security verification');
+      }
+
+      // Verify Turnstile token
+      const verifyResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-turnstile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ token: turnstileToken }),
+        }
+      );
+
+      const verifyData = await verifyResponse.json();
+      if (!verifyData.success) {
+        throw new Error('Security verification failed. Please try again.');
+      }
+
       // Insert into hirers table
       const { error: insertError } = await supabase
         .from('hirers')
@@ -88,6 +113,10 @@ function HirerConsent() {
     } catch (err) {
       console.error('Error submitting form:', err);
       setError(err.message || 'Failed to submit form. Please try again.');
+      // Reset Turnstile widget on error
+      if (window.turnstile && turnstileRef.current) {
+        window.turnstile.reset(turnstileRef.current);
+      }
     } finally {
       setLoading(false);
     }
@@ -239,6 +268,14 @@ function HirerConsent() {
                 <strong>Success!</strong> Your account has been created. We'll contact you at {submittedEmail} with next steps.
               </div>
             )}
+
+            <div
+              ref={turnstileRef}
+              className="cf-turnstile"
+              data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              data-theme="light"
+              style={{marginBottom: '20px'}}
+            ></div>
 
             <button
               type="submit"

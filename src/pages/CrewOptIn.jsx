@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './ConsentPage.css';
@@ -22,6 +22,7 @@ function CrewOptIn() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const turnstileRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +30,30 @@ function CrewOptIn() {
     setError(null);
 
     try {
+      // Get Turnstile token
+      const turnstileToken = window.turnstile.getResponse(turnstileRef.current);
+      if (!turnstileToken) {
+        throw new Error('Please complete the security verification');
+      }
+
+      // Verify Turnstile token
+      const verifyResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-turnstile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ token: turnstileToken }),
+        }
+      );
+
+      const verifyData = await verifyResponse.json();
+      if (!verifyData.success) {
+        throw new Error('Security verification failed. Please try again.');
+      }
+
       // Insert into crew_members table
       const { error: insertError } = await supabase
         .from('crew_members')
@@ -50,6 +75,10 @@ function CrewOptIn() {
     } catch (err) {
       console.error('Error submitting form:', err);
       setError(err.message || 'Failed to submit form. Please try again.');
+      // Reset Turnstile widget on error
+      if (window.turnstile && turnstileRef.current) {
+        window.turnstile.reset(turnstileRef.current);
+      }
       setLoading(false);
     }
   };
@@ -274,6 +303,14 @@ function CrewOptIn() {
                 <strong>Error:</strong> {error}
               </div>
             )}
+
+            <div
+              ref={turnstileRef}
+              className="cf-turnstile"
+              data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              data-theme="light"
+              style={{marginBottom: '20px'}}
+            ></div>
 
             <button
               type="submit"
