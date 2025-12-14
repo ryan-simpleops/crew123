@@ -85,7 +85,34 @@ function Terms() {
         </section>
 
         <section>
-          <h2>7. Prohibited Uses</h2>
+          <h2>7. TCPA Compliance & Consent</h2>
+          <p>
+            Crew123 is fully compliant with the Telephone Consumer Protection Act (TCPA) and utilizes
+            registered 10DLC campaigns for all SMS communications.
+          </p>
+          <p>
+            <strong>Our SMS Number:</strong> Messages are sent from +1 (217) 582-3786
+          </p>
+          <p>
+            <strong>Double Opt-In Process:</strong> Before receiving any job notifications, crew members must:
+          </p>
+          <ul>
+            <li>Complete a web-based consent form with explicit agreement to receive SMS messages</li>
+            <li>Confirm their phone number by replying "YES" to an SMS confirmation message</li>
+            <li>Both steps are required before any transactional messages are sent</li>
+          </ul>
+          <p>
+            <strong>Message Frequency:</strong> Message frequency varies based on job availability.
+            Typically 2-4 messages per week, up to 10 messages per week during busy production periods.
+          </p>
+          <p>
+            <strong>Your Rights:</strong> You have the right to opt out at any time by replying STOP to any
+            message. Your consent is not a condition of purchase or employment.
+          </p>
+        </section>
+
+        <section>
+          <h2>8. Prohibited Uses</h2>
           <p>You may not use Crew123 to:</p>
           <ul>
             <li>Violate any laws or regulations</li>
