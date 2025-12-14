@@ -25,7 +25,7 @@ function HirerConsent() {
 
     try {
       // Insert into hirers table
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('hirers')
         .insert([
           {
@@ -36,12 +36,11 @@ function HirerConsent() {
             agreed_to_terms: formData.agreedToTerms,
             agreed_to_contact_crew: formData.agreedToContactCrew,
           }
-        ])
-        .select();
+        ]);
 
       if (insertError) throw insertError;
 
-      console.log('Hirer registered:', data);
+      console.log('Hirer registered successfully');
 
       // Send welcome email via Edge Function
       try {
