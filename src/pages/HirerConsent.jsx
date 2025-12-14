@@ -25,10 +25,21 @@ function HirerConsent() {
     setSuccess(false);
 
     try {
+      // Debug: Check if Turnstile loaded
+      console.log('Turnstile available:', !!window.turnstile);
+      console.log('Widget container:', turnstileRef.current);
+
       // Get Turnstile token from the hidden input field created by implicit rendering
       const turnstileToken = turnstileRef.current?.querySelector('input[name="cf-turnstile-response"]')?.value;
+
+      console.log('Token found:', !!turnstileToken);
+      console.log('Token value:', turnstileToken?.substring(0, 20) + '...');
+
       if (!turnstileToken) {
-        throw new Error('Please complete the security verification');
+        // Check if widget rendered at all
+        const widgetDiv = turnstileRef.current?.querySelector('.cf-turnstile');
+        console.log('Widget div exists:', !!widgetDiv);
+        throw new Error('Please complete the security verification. Try waiting a moment and submitting again.');
       }
 
       // Verify Turnstile token
@@ -277,8 +288,12 @@ function HirerConsent() {
               className="cf-turnstile"
               data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
               data-theme="light"
+              data-callback="onTurnstileSuccess"
               style={{marginBottom: '20px'}}
             ></div>
+            {!import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+              <p style={{color: 'red'}}>Warning: Turnstile site key not configured</p>
+            )}
 
             <button
               type="submit"
