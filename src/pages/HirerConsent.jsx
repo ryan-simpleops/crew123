@@ -102,7 +102,7 @@ function HirerConsent() {
     }));
   };
 
-  const isFormValid = formData.name && formData.email && formData.company &&
+  const isFormValid = formData.name && formData.email &&
                       formData.role && formData.agreedToTerms && formData.agreedToContactCrew;
 
   return (
@@ -168,14 +168,14 @@ function HirerConsent() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="company">Production Company / Organization *</label>
+              <label htmlFor="company">Production Company / Organization</label>
               <input
                 type="text"
                 id="company"
                 name="company"
+                placeholder="Leave blank if independent contractor"
                 value={formData.company}
                 onChange={handleChange}
-                required
               />
             </div>
 

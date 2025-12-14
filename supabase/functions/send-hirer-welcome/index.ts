@@ -24,7 +24,7 @@ serve(async (req) => {
           <h2>What's Next?</h2>
           <p>We're currently in beta. Here's what you can expect:</p>
           <ul>
-            <li>Your account has been created for ${hirer.company}</li>
+            <li>Your account has been created${hirer.company ? ` for ${hirer.company}` : ''}</li>
             <li>We'll notify you when we're ready to launch the full platform</li>
             <li>You'll be able to build priority lists of crew members</li>
             <li>Send time-sensitive job offers via SMS</li>
