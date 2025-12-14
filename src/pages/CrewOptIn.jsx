@@ -30,7 +30,7 @@ function CrewOptIn() {
 
     try {
       // Insert into crew_members table
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('crew_members')
         .insert([
           {
@@ -41,12 +41,11 @@ function CrewOptIn() {
             web_consent_at: new Date().toISOString(),
             // hirer_id will be null for now until we implement email invitations
           }
-        ])
-        .select();
+        ]);
 
       if (insertError) throw insertError;
 
-      console.log('Crew member opt-in:', data);
+      console.log('Crew member opt-in successful');
       setSubmitted(true);
     } catch (err) {
       console.error('Error submitting form:', err);
