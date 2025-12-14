@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './ConsentPage.css';
@@ -23,6 +23,44 @@ function CrewOptIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const turnstileRef = useRef(null);
+  const widgetIdRef = useRef(null);
+
+  // Explicitly render Turnstile widget when component mounts
+  useEffect(() => {
+    const renderWidget = () => {
+      if (window.turnstile && turnstileRef.current && !widgetIdRef.current) {
+        try {
+          widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+            sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+            theme: 'light',
+          });
+          console.log('Turnstile widget rendered with ID:', widgetIdRef.current);
+        } catch (err) {
+          console.error('Error rendering Turnstile:', err);
+        }
+      }
+    };
+
+    renderWidget();
+
+    const interval = setInterval(() => {
+      if (window.turnstile && !widgetIdRef.current) {
+        renderWidget();
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+      if (window.turnstile && widgetIdRef.current) {
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch (err) {
+          console.error('Error removing Turnstile widget:', err);
+        }
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,10 +68,14 @@ function CrewOptIn() {
     setError(null);
 
     try {
-      // Get Turnstile token from the hidden input field created by implicit rendering
-      const turnstileToken = turnstileRef.current?.querySelector('input[name="cf-turnstile-response"]')?.value;
+      // Get Turnstile token using explicit rendering API
+      if (!widgetIdRef.current) {
+        throw new Error('Security verification not initialized. Please refresh the page.');
+      }
+
+      const turnstileToken = window.turnstile.getResponse(widgetIdRef.current);
       if (!turnstileToken) {
-        throw new Error('Please complete the security verification');
+        throw new Error('Please complete the security verification.');
       }
 
       // Verify Turnstile token
@@ -75,12 +117,9 @@ function CrewOptIn() {
     } catch (err) {
       console.error('Error submitting form:', err);
       setError(err.message || 'Failed to submit form. Please try again.');
-      // Reset Turnstile widget on error - for implicit rendering
-      if (window.turnstile && turnstileRef.current) {
-        const widgets = window.turnstile.getResponse();
-        if (widgets) {
-          window.turnstile.reset();
-        }
+      // Reset Turnstile widget on error
+      if (window.turnstile && widgetIdRef.current) {
+        window.turnstile.reset(widgetIdRef.current);
       }
       setLoading(false);
     }
@@ -309,9 +348,6 @@ function CrewOptIn() {
 
             <div
               ref={turnstileRef}
-              className="cf-turnstile"
-              data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-              data-theme="light"
               style={{marginBottom: '20px'}}
             ></div>
 

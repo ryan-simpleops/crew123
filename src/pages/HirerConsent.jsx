@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './ConsentPage.css';
@@ -17,6 +17,47 @@ function HirerConsent() {
   const [success, setSuccess] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
   const turnstileRef = useRef(null);
+  const widgetIdRef = useRef(null);
+
+  // Explicitly render Turnstile widget when component mounts
+  useEffect(() => {
+    const renderWidget = () => {
+      if (window.turnstile && turnstileRef.current && !widgetIdRef.current) {
+        try {
+          widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+            sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+            theme: 'light',
+          });
+          console.log('Turnstile widget rendered with ID:', widgetIdRef.current);
+        } catch (err) {
+          console.error('Error rendering Turnstile:', err);
+        }
+      }
+    };
+
+    // Try to render immediately
+    renderWidget();
+
+    // If Turnstile not loaded yet, wait for it
+    const interval = setInterval(() => {
+      if (window.turnstile && !widgetIdRef.current) {
+        renderWidget();
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+      // Clean up widget on unmount
+      if (window.turnstile && widgetIdRef.current) {
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch (err) {
+          console.error('Error removing Turnstile widget:', err);
+        }
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,21 +66,16 @@ function HirerConsent() {
     setSuccess(false);
 
     try {
-      // Debug: Check if Turnstile loaded
-      console.log('Turnstile available:', !!window.turnstile);
-      console.log('Widget container:', turnstileRef.current);
+      // Get Turnstile token using explicit rendering API
+      if (!widgetIdRef.current) {
+        throw new Error('Security verification not initialized. Please refresh the page.');
+      }
 
-      // Get Turnstile token from the hidden input field created by implicit rendering
-      const turnstileToken = turnstileRef.current?.querySelector('input[name="cf-turnstile-response"]')?.value;
-
-      console.log('Token found:', !!turnstileToken);
-      console.log('Token value:', turnstileToken?.substring(0, 20) + '...');
+      const turnstileToken = window.turnstile.getResponse(widgetIdRef.current);
+      console.log('Turnstile token retrieved:', !!turnstileToken);
 
       if (!turnstileToken) {
-        // Check if widget rendered at all
-        const widgetDiv = turnstileRef.current?.querySelector('.cf-turnstile');
-        console.log('Widget div exists:', !!widgetDiv);
-        throw new Error('Please complete the security verification. Try waiting a moment and submitting again.');
+        throw new Error('Please complete the security verification.');
       }
 
       // Verify Turnstile token
@@ -124,12 +160,9 @@ function HirerConsent() {
     } catch (err) {
       console.error('Error submitting form:', err);
       setError(err.message || 'Failed to submit form. Please try again.');
-      // Reset Turnstile widget on error - for implicit rendering, reset the widget using the container
-      if (window.turnstile && turnstileRef.current) {
-        const widgets = window.turnstile.getResponse();
-        if (widgets) {
-          window.turnstile.reset();
-        }
+      // Reset Turnstile widget on error
+      if (window.turnstile && widgetIdRef.current) {
+        window.turnstile.reset(widgetIdRef.current);
       }
     } finally {
       setLoading(false);
@@ -285,15 +318,8 @@ function HirerConsent() {
 
             <div
               ref={turnstileRef}
-              className="cf-turnstile"
-              data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-              data-theme="light"
-              data-callback="onTurnstileSuccess"
               style={{marginBottom: '20px'}}
             ></div>
-            {!import.meta.env.VITE_TURNSTILE_SITE_KEY && (
-              <p style={{color: 'red'}}>Warning: Turnstile site key not configured</p>
-            )}
 
             <button
               type="submit"
