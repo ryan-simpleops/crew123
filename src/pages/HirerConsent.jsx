@@ -42,6 +42,38 @@ function HirerConsent() {
       if (insertError) throw insertError;
 
       console.log('Hirer registered:', data);
+
+      // Send welcome email via Edge Function
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-hirer-welcome`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              hirer: {
+                name: formData.name,
+                email: formData.email,
+                company: formData.company,
+              }
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          console.error('Failed to send welcome email:', await response.text());
+        } else {
+          console.log('Welcome email sent successfully');
+        }
+      } catch (emailError) {
+        // Log but don't fail the registration if email fails
+        console.error('Error sending welcome email:', emailError);
+      }
+
       setSubmittedEmail(formData.email);
       setSuccess(true);
 
