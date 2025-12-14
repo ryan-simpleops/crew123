@@ -30,8 +30,8 @@ function CrewOptIn() {
     setError(null);
 
     try {
-      // Get Turnstile token
-      const turnstileToken = window.turnstile.getResponse(turnstileRef.current);
+      // Get Turnstile token from the hidden input field created by implicit rendering
+      const turnstileToken = turnstileRef.current?.querySelector('input[name="cf-turnstile-response"]')?.value;
       if (!turnstileToken) {
         throw new Error('Please complete the security verification');
       }
@@ -75,9 +75,12 @@ function CrewOptIn() {
     } catch (err) {
       console.error('Error submitting form:', err);
       setError(err.message || 'Failed to submit form. Please try again.');
-      // Reset Turnstile widget on error
+      // Reset Turnstile widget on error - for implicit rendering
       if (window.turnstile && turnstileRef.current) {
-        window.turnstile.reset(turnstileRef.current);
+        const widgets = window.turnstile.getResponse();
+        if (widgets) {
+          window.turnstile.reset();
+        }
       }
       setLoading(false);
     }
