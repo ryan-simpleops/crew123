@@ -67,6 +67,18 @@
   box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
 }
 
+.nav-btn-secondary {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.nav-btn-secondary:hover {
+  background: #667eea;
+  color: white;
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+}
+
 @media (max-width: 768px) {
   .nav-menu {
     gap: 15px;

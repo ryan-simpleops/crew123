@@ -23,6 +23,11 @@ function Navigation() {
             <Link to="/crew-opt-in" className="nav-link">Crew Opt-In</Link>
           </li>
           <li className="nav-item">
+            <Link to="/login">
+              <button className="nav-btn nav-btn-secondary">Login</button>
+            </Link>
+          </li>
+          <li className="nav-item">
             <Link to="/hirer-signup">
               <button className="nav-btn">Sign Up</button>
             </Link>

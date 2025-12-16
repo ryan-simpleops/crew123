@@ -1,0 +1,10 @@
+{
+  "name": "crew123-handle-sms-webhook",
+  "version": "1.0.0",
+  "description": "Handle incoming SMS responses",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-ssm": "^3.679.0",
+    "pg": "^8.11.3"
+  }
+}

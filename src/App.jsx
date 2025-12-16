@@ -8,6 +8,10 @@ import SMSTerms from './pages/SMSTerms';
 import Contact from './pages/Contact';
 import HirerConsent from './pages/HirerConsent';
 import CrewOptIn from './pages/CrewOptIn';
+import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Dashboard from './pages/Dashboard';
 import './App.css';
 
 function App() {
@@ -24,6 +28,10 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/hirer-signup" element={<HirerConsent />} />
             <Route path="/crew-opt-in" element={<CrewOptIn />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </main>
         <Footer />

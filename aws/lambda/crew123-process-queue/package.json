@@ -1,0 +1,11 @@
+{
+  "name": "crew123-process-queue",
+  "version": "1.0.0",
+  "description": "Process SMS queue and send messages",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-sns": "^3.679.0",
+    "@aws-sdk/client-ssm": "^3.679.0",
+    "pg": "^8.11.3"
+  }
+}

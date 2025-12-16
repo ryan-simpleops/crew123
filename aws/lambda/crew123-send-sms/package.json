@@ -1,0 +1,9 @@
+{
+  "name": "crew123-send-sms",
+  "version": "1.0.0",
+  "description": "Send SMS via AWS SNS",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-sns": "^3.679.0"
+  }
+}

@@ -9,6 +9,7 @@ function HirerConsent() {
     email: '',
     company: '',
     role: '',
+    password: '',
     agreedToTerms: false,
     agreedToContactCrew: false,
   });
@@ -96,11 +97,20 @@ function HirerConsent() {
         throw new Error('Security verification failed. Please try again.');
       }
 
-      // Insert into hirers table
+      // Create Supabase auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (authError) throw authError;
+
+      // Insert into hirers table with auth user ID
       const { error: insertError } = await supabase
         .from('hirers')
         .insert([
           {
+            id: authData.user.id,
             name: formData.name,
             email: formData.email,
             company: formData.company,
@@ -154,6 +164,7 @@ function HirerConsent() {
         email: '',
         company: '',
         role: '',
+        password: '',
         agreedToTerms: false,
         agreedToContactCrew: false,
       });
@@ -177,7 +188,7 @@ function HirerConsent() {
     }));
   };
 
-  const isFormValid = formData.name && formData.email &&
+  const isFormValid = formData.name && formData.email && formData.password &&
                       formData.role && formData.agreedToTerms && formData.agreedToContactCrew;
 
   return (
@@ -240,6 +251,21 @@ function HirerConsent() {
                 onChange={handleChange}
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password *</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                autoComplete="new-password"
+              />
+              <small>At least 6 characters</small>
             </div>
 
             <div className="form-group">
