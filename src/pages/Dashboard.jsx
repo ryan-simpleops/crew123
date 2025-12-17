@@ -80,7 +80,9 @@ function Dashboard() {
             <div className="feature-card">
               <h3>Crew Lists</h3>
               <p>Manage your crew members and priority lists</p>
-              <button className="btn-primary" disabled>Coming Soon</button>
+              <button className="btn-primary" onClick={() => navigate('/dashboard/crew')}>
+                Manage Crew
+              </button>
             </div>
 
             <div className="feature-card">
