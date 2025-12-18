@@ -97,6 +97,17 @@ function HirerConsent() {
         throw new Error('Security verification failed. Please try again.');
       }
 
+      // Check if email already exists in hirers table (prevent orphaned records)
+      const { data: existingHirer } = await supabase
+        .from('hirers')
+        .select('email')
+        .eq('email', formData.email)
+        .maybeSingle();
+
+      if (existingHirer) {
+        throw new Error('An account with this email already exists. Please login instead.');
+      }
+
       // Create Supabase auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
