@@ -105,10 +105,10 @@ function HirerConsent() {
 
       if (authError) throw authError;
 
-      // Insert into hirers table with auth user ID
-      const { error: insertError } = await supabase
+      // Insert or update hirers table with auth user ID
+      const { error: upsertError } = await supabase
         .from('hirers')
-        .insert([
+        .upsert(
           {
             id: authData.user.id,
             name: formData.name,
@@ -117,10 +117,13 @@ function HirerConsent() {
             role: formData.role,
             agreed_to_terms: formData.agreedToTerms,
             agreed_to_contact_crew: formData.agreedToContactCrew,
+          },
+          {
+            onConflict: 'id'
           }
-        ]);
+        );
 
-      if (insertError) throw insertError;
+      if (upsertError) throw upsertError;
 
       console.log('Hirer registered successfully');
 
