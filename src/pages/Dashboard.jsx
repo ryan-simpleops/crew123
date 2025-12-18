@@ -29,10 +29,15 @@ function Dashboard() {
       const { data: hirerData, error } = await supabase
         .from('hirers')
         .select('*')
-        .eq('email', user.email)
-        .single();
+        .eq('id', user.id)
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!hirerData) {
+        console.error('No hirer profile found for user:', user.id);
+        // Could redirect to signup or show error
+      }
 
       setHirer(hirerData);
     } catch (error) {

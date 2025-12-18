@@ -41,10 +41,15 @@ function CrewManagement() {
       const { data: hirerData, error: hirerError } = await supabase
         .from('hirers')
         .select('*')
-        .eq('email', user.email)
-        .single();
+        .eq('id', user.id)
+        .maybeSingle();
 
       if (hirerError) throw hirerError;
+
+      if (!hirerData) {
+        throw new Error('Hirer profile not found. Please complete signup first.');
+      }
+
       setHirer(hirerData);
 
       // Load all crew management data in parallel
