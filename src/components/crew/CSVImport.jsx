@@ -37,8 +37,8 @@ function CSVImport({ tags, hirer, onRefresh }) {
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
 
       // Expected format: name,phone,email,tags
-      if (!headers.includes('name') || !headers.includes('phone')) {
-        alert('CSV must have "name" and "phone" columns');
+      if (!headers.includes('name') || !headers.includes('phone') || !headers.includes('email')) {
+        alert('CSV must have "name", "phone", and "email" columns');
         return;
       }
 
@@ -70,7 +70,9 @@ function CSVImport({ tags, hirer, onRefresh }) {
           }
         }
 
-        if (row.email && !validateEmail(row.email)) {
+        if (!row.email) {
+          errors.push('Email is required');
+        } else if (!validateEmail(row.email)) {
           errors.push('Invalid email format');
         }
 
@@ -156,7 +158,7 @@ function CSVImport({ tags, hirer, onRefresh }) {
           .upsert({
             phone: row.normalized_phone,
             name: row.name,
-            email: row.email || null
+            email: row.email
           }, {
             onConflict: 'phone',
             ignoreDuplicates: false
@@ -233,7 +235,8 @@ function CSVImport({ tags, hirer, onRefresh }) {
       </div>
 
       <p style={{color: '#666', marginBottom: '16px'}}>
-        Upload a CSV file to bulk import crew members. Expected format:
+        Upload a CSV file to bulk import crew members. All fields (name, phone, email) are required.
+        Email is needed to send SMS opt-in invitations.
       </p>
 
       <div className="csv-format-example">
@@ -284,6 +287,7 @@ function CSVImport({ tags, hirer, onRefresh }) {
               <div>Row</div>
               <div>Name</div>
               <div>Phone</div>
+              <div>Email</div>
               <div>Tags</div>
               <div>Status</div>
             </div>
@@ -293,6 +297,7 @@ function CSVImport({ tags, hirer, onRefresh }) {
                 <div style={{color: '#999'}}>#{row.row_number}</div>
                 <div><strong>{row.name}</strong></div>
                 <div>{row.phone}</div>
+                <div style={{fontSize: '13px'}}>{row.email || <span style={{color: '#999'}}>—</span>}</div>
                 <div>
                   {row.parsed_tags.length > 0 ? (
                     row.parsed_tags.map((tag, i) => (

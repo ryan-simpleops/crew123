@@ -73,7 +73,9 @@ function CrewForm({ crew, tags, hirer, onClose, onSuccess }) {
       }
     }
 
-    if (formData.email && !validateEmail(formData.email)) {
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required for SMS opt-in invitations';
+    } else if (!validateEmail(formData.email)) {
       errors.email = 'Invalid email format';
     }
 
@@ -114,7 +116,7 @@ function CrewForm({ crew, tags, hirer, onClose, onSuccess }) {
           .update({
             name: formData.name.trim(),
             phone: normalizedPhone,
-            email: formData.email.trim() || null
+            email: formData.email.trim()
           })
           .eq('id', crew.id);
 
@@ -136,7 +138,7 @@ function CrewForm({ crew, tags, hirer, onClose, onSuccess }) {
           .insert({
             name: formData.name.trim(),
             phone: normalizedPhone,
-            email: formData.email.trim() || null
+            email: formData.email.trim()
           })
           .select()
           .single();
@@ -208,7 +210,7 @@ function CrewForm({ crew, tags, hirer, onClose, onSuccess }) {
           </div>
 
           <div className={`form-group ${fieldErrors.email ? 'error' : ''}`}>
-            <label htmlFor="email">Email (Optional)</label>
+            <label htmlFor="email">Email *</label>
             <input
               type="email"
               id="email"
@@ -216,7 +218,9 @@ function CrewForm({ crew, tags, hirer, onClose, onSuccess }) {
               value={formData.email}
               onChange={handleChange}
               placeholder="john@example.com"
+              required
             />
+            <small>Required to send SMS opt-in invitation</small>
             {fieldErrors.email && <div className="error-text">{fieldErrors.email}</div>}
           </div>
 
