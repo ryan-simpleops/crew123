@@ -106,6 +106,7 @@ function HirerConsent() {
       if (authError) throw authError;
 
       // Insert or update hirers table with auth user ID
+      // Use email as conflict key since that's the unique constraint
       const { error: upsertError } = await supabase
         .from('hirers')
         .upsert(
@@ -119,7 +120,8 @@ function HirerConsent() {
             agreed_to_contact_crew: formData.agreedToContactCrew,
           },
           {
-            onConflict: 'id'
+            onConflict: 'email',
+            ignoreDuplicates: false
           }
         );
 
