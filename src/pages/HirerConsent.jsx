@@ -97,79 +97,25 @@ function HirerConsent() {
         throw new Error('Security verification failed. Please try again.');
       }
 
-      // Check if email already exists in hirers table (prevent orphaned records)
-      const { data: existingHirer } = await supabase
-        .from('hirers')
-        .select('email')
-        .eq('email', formData.email)
-        .maybeSingle();
-
-      if (existingHirer) {
-        throw new Error('An account with this email already exists. Please login instead.');
-      }
-
-      // Create Supabase auth user
+      // Create Supabase auth user with form data in metadata
+      // The database trigger will create the hirer record after email confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-      });
-
-      if (authError) throw authError;
-
-      // Insert or update hirers table with auth user ID
-      // Use email as conflict key since that's the unique constraint
-      const { error: upsertError } = await supabase
-        .from('hirers')
-        .upsert(
-          {
-            id: authData.user.id,
+        options: {
+          data: {
             name: formData.name,
-            email: formData.email,
             company: formData.company,
             role: formData.role,
             agreed_to_terms: formData.agreedToTerms,
             agreed_to_contact_crew: formData.agreedToContactCrew,
-          },
-          {
-            onConflict: 'email',
-            ignoreDuplicates: false
           }
-        );
-
-      if (upsertError) throw upsertError;
-
-      console.log('Hirer registered successfully');
-
-      // Send welcome email via Edge Function
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-hirer-welcome`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              hirer: {
-                name: formData.name,
-                email: formData.email,
-                company: formData.company,
-              }
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          console.error('Failed to send welcome email:', await response.text());
-        } else {
-          console.log('Welcome email sent successfully');
         }
-      } catch (emailError) {
-        // Log but don't fail the registration if email fails
-        console.error('Error sending welcome email:', emailError);
-      }
+      });
+
+      if (authError) throw authError;
+
+      console.log('User registered successfully. Email confirmation required.');
 
       setSubmittedEmail(formData.email);
       setSuccess(true);
@@ -354,7 +300,8 @@ function HirerConsent() {
 
             {success && (
               <div style={{padding: '15px', background: '#efe', border: '1px solid #cfc', borderRadius: '6px', color: '#060', marginBottom: '20px'}}>
-                <strong>Success!</strong> Your account has been created. We'll contact you at {submittedEmail} with next steps.
+                <strong>Success!</strong> Please check your email at {submittedEmail} to confirm your account.
+                After confirming, you can login and start managing your crew lists.
               </div>
             )}
 
