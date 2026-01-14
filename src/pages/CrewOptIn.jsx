@@ -306,10 +306,11 @@ function CrewOptIn() {
                   required
                 />
                 <span className="checkbox-text">
-                  <strong>I consent to receive automated SMS messages from Crew123</strong>
+                  <strong>I expressly consent to receive promotional text messages and marketing communications from Crew123</strong>
                   <br />
-                  By checking this box, I expressly consent to receive automated text messages about
-                  job opportunities from department heads through the Crew123 platform.
+                  By checking this box, I provide my express written consent to receive automated
+                  promotional text messages and marketing communications about job opportunities
+                  from department heads through the Crew123 platform.
                   I understand that:
                   <ul>
                     <li>I will receive a confirmation text and must reply "YES" to activate SMS notifications</li>
@@ -360,9 +361,9 @@ function CrewOptIn() {
             </button>
 
             <p className="form-footer">
-              By submitting this form, you provide express written consent to receive SMS messages
-              as described above. You will receive a confirmation text message to verify your phone number
-              and complete the opt-in process.
+              By submitting this form, you provide express written consent to receive promotional
+              text messages and marketing communications as described above. You will receive a
+              confirmation text message to verify your phone number and complete the opt-in process.
             </p>
           </form>
         </div>
